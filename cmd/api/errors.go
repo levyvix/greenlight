@@ -30,10 +30,8 @@ func (app *application) badRequestResponse(w http.ResponseWriter, r *http.Reques
 }
 
 func (app *application) errorResponse(w http.ResponseWriter, r *http.Request, status int, message any) {
-	err := app.writeJSON(w, status, message, nil)
-	if err != nil {
+	if err := app.writeJSON(w, status, message, nil); err != nil {
 		app.logError(r, err)
-		w.WriteHeader(500)
 	}
 }
 
