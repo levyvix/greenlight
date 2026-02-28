@@ -33,7 +33,13 @@ func (app *application) listMovieHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	fmt.Fprintf(w, "%+v\n", input)
+	movies, err := app.models.Movies.GetAll()
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+
+	app.writeJSON(w, http.StatusOK, map[string]any{"movies": movies}, nil)
+
 }
 
 func (app *application) createMovieHandler(w http.ResponseWriter, r *http.Request) {
