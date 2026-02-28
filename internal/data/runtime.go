@@ -22,18 +22,23 @@ func (r Runtime) MarshalJSON() ([]byte, error) {
 
 func (r *Runtime) UnmarshalJSON(jsonData []byte) error {
 	jsonString := string(jsonData)
-	jsonUnquoted, err := strconv.Unquote(jsonString)
-	if err != nil || jsonUnquoted == "" {
+
+	unquoted, err := strconv.Unquote(jsonString)
+	if err == nil {
+		value := strings.TrimSuffix(unquoted, " mins")
+		valueInt, err := strconv.Atoi(value)
+		if err != nil {
+			return ErrParsingRuntime
+		}
+		*r = Runtime(valueInt)
+		return nil
+	}
+
+	valueInt, err := strconv.Atoi(jsonString)
+	if err != nil {
 		return ErrInvalidRuntime
 	}
 
-	value := strings.TrimSuffix(jsonUnquoted, " mins")
-	valueInt, err := strconv.Atoi(value)
-	if err != nil {
-		return ErrParsingRuntime
-	}
-
 	*r = Runtime(valueInt)
-
 	return nil
 }
