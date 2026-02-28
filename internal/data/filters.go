@@ -2,6 +2,7 @@ package data
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/levyvix/greenlight-api/internal/validator"
 )
@@ -11,6 +12,25 @@ type Filters struct {
 	PageSize     int
 	Sort         string
 	SortSafeList []string
+}
+
+func (f Filters) sortColumn() string {
+	for _, safeValue := range f.SortSafeList {
+		if f.Sort == safeValue {
+			return strings.TrimPrefix(safeValue, "-")
+		}
+
+	}
+
+	panic(fmt.Sprintf("unsafe sort parameter: %q", f.Sort))
+}
+
+func (f Filters) sortDirection() string {
+	if strings.HasPrefix(f.Sort, "-") {
+		return "DESC"
+	}
+
+	return "ASC"
 }
 
 func Validatefilters(v *validator.Validator, f Filters) {
