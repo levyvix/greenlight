@@ -14,6 +14,12 @@ func (app *application) logError(r *http.Request, err error) {
 	app.logger.Error(err.Error(), "method", method, "uri", uri)
 }
 
+func (app *application) errEditConflictResponse(w http.ResponseWriter, r *http.Request) {
+	message := "unable to update the record due to an edit conflict, please try again"
+	app.errorResponse(w, r, http.StatusConflict, message)
+
+}
+
 func (app *application) failedValidationResponse(w http.ResponseWriter, r *http.Request, errors map[string]string) {
 	errorEnvelope := map[string]any{"errors": errors}
 	app.errorResponse(w, r, http.StatusUnprocessableEntity, errorEnvelope)

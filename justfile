@@ -10,3 +10,7 @@ mig-down MANY:
   migrate -path ./migrations -database $GREENLIGHT_DB_DSN down {{MANY}}
 mig-force VERSION:
   migrate -path ./migrations -database $GREENLIGHT_DB_DSN force {{VERSION}}
+
+kill-api PORT="4000":
+  lsof -ti :{{PORT}} | xargs -r kill 2>/dev/null
+

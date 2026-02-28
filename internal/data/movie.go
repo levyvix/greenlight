@@ -1,6 +1,7 @@
 package data
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"time"
@@ -46,7 +47,9 @@ func (m MovieModel) Get(id int64) (*Movie, error) {
 	query := `SELECT id, created_at, title, year, runtime, genres, version
 	FROM movies WHERE id = $1`
 
-	err := m.DB.QueryRow(query, id).Scan(&movieResult.ID, &movieResult.CreatedAt, &movieResult.Title, &movieResult.Year, &movieResult.Runtime, pq.Array(&movieResult.Genres), &movieResult.Version)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	err := m.DB.QueryRowContext(ctx, query, id).Scan(&movieResult.ID, &movieResult.CreatedAt, &movieResult.Title, &movieResult.Year, &movieResult.Runtime, pq.Array(&movieResult.Genres), &movieResult.Version)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
@@ -61,7 +64,7 @@ func (m MovieModel) Get(id int64) (*Movie, error) {
 func (m MovieModel) Update(movie *Movie) error {
 
 	query := `UPDATE movies set title = $1, year = $2, runtime = $3, genres = $4, version = version + 1
-	where id = $5
+	where id = $5 and version = $6
 	returning version`
 
 	args := []any{
@@ -70,13 +73,14 @@ func (m MovieModel) Update(movie *Movie) error {
 		movie.Runtime,
 		pq.Array(movie.Genres),
 		movie.ID,
+		movie.Version,
 	}
 
 	err := m.DB.QueryRow(query, args...).Scan(&movie.Version)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return ErrRecordNotFound
+			return ErrEditConflict
 		default:
 			return err
 		}
