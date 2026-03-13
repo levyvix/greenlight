@@ -28,17 +28,17 @@ func (app *application) listMovieHandler(w http.ResponseWriter, r *http.Request)
 
 	input.Filters.SortSafeList = []string{"id", "title", "year", "runtime", "-id", "-title", "-year", "-runtime"}
 
-	if data.Validatefilters(v, input.Filters); !v.Valid() {
+	if data.ValidateMovieFilters(v, input.Filters); !v.Valid() {
 		app.failedValidationResponse(w, r, v.Errors)
 		return
 	}
 
-	movies, err := app.models.Movies.GetAll(input.Title, input.Genres, input.Filters)
+	movies, metadata, err := app.models.Movies.GetAll(input.Title, input.Genres, input.Filters)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
 
-	app.writeJSON(w, http.StatusOK, map[string]any{"movies": movies}, nil)
+	app.writeJSON(w, http.StatusOK, map[string]any{"metadata": metadata, "movies": movies}, nil)
 
 }
 
